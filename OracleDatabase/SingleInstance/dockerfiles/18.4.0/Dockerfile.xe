@@ -18,7 +18,7 @@
 #
 # Pull base image
 # ---------------
-FROM oraclelinux:7-slim
+FROM registry.access.redhat.com/rhel7/rhel
 
 # Labels
 # ------
@@ -31,7 +31,11 @@ LABEL "provider"="Oracle"                                               \
       "volume.startup.location2"="/docker-entrypoint-initdb.d/startup"  \
       "port.listener"="1521"                                            \
       "port.oemexpress"="5500"                                          \
-      "port.apex"="8080"
+      "port.apex"="8080"                                                \
+      "io.k8s.description"="Customized Oracle XE 18c image for OpenShift (Created by Igor Petukhov)"  \
+      "io.k8s.display-name"="Oracle XE 18c"                             \
+      "io.openshift.expose-services"="1521:1521"                        \
+      "io.openshift.tags"="oracle, xe, 18c, db"
 
 # Environment variables required for this build (do NOT change)
 # -------------------------------------------------------------
@@ -48,13 +52,15 @@ ENV ORACLE_BASE=/opt/oracle \
     ORACLE_DOCKER_INSTALL="true"
 
 # Use second ENV so that variable get substituted
-ENV PATH=$ORACLE_HOME/bin:$PATH
+ENV PATH=$ORACLE_HOME/bin:$PATH \
+    ORA_DATA=/opt/oracle/oradata
 
 # Copy binaries
 # -------------
 COPY $CHECK_SPACE_FILE $RUN_FILE $PWD_FILE $CHECK_DB_FILE $CONF_FILE $INSTALL_DIR/
 
-RUN chmod ug+x $INSTALL_DIR/*.sh && \
+RUN chgrp -R 0 $INSTALL_DIR/*.sh && \
+    chmod -R g=u $INSTALL_DIR/*.sh && \
     sync && \
     $INSTALL_DIR/$CHECK_SPACE_FILE && \
     cd $INSTALL_DIR && \
@@ -74,9 +80,15 @@ RUN chmod ug+x $INSTALL_DIR/*.sh && \
     ln -s $ORACLE_BASE/$PWD_FILE / && \
     cd $HOME && \
     rm -rf $INSTALL_DIR && \
-    chmod ug+x $ORACLE_BASE/*.sh
+    chgrp -R 0 $ORACLE_BASE/*.sh \
+    chmod -R g=u $ORACLE_BASE/*.sh
 
-HEALTHCHECK --interval=1m --start-period=5m \
-   CMD "$ORACLE_BASE/$CHECK_DB_FILE" >/dev/null || exit 1
+# HEALTHCHECK --interval=1m --start-period=5m \
+#    CMD "$ORACLE_BASE/$CHECK_DB_FILE" >/dev/null || exit 1
+
+VOLUME ${ORA_DATA}
+
+EXPOSE 1521
+USER oracle
 
 CMD exec $ORACLE_BASE/$RUN_FILE
