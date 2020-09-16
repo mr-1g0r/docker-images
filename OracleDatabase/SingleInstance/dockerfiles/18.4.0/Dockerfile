@@ -69,10 +69,10 @@ RUN chgrp -R 0 $INSTALL_DIR && \
     cd $INSTALL_DIR && \
     # Manually installing Oracle-XE pre-requisites
     curl -o oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm $INSTALL_FILE_0 && \
-    yum -y localinstall oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm && \
+    yum -y localinstall oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm --skip-broken && \
     # yum-config-manager --enable registry.access.redhat.com && \
     # yum -y install openssl oracle-database-preinstall-18c && \
-    yum -y localinstall $INSTALL_FILE_1 && \
+    yum -y localinstall $INSTALL_FILE_1 --skip-broken && \
     # yum -y localinstall $INSTALL_DIR/$INSTALL_FILE_1 && \
     rm -rf /var/cache/yum && \
     rm -rf /var/tmp/yum-* && \
