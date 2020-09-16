@@ -80,7 +80,7 @@ RUN chgrp -R 0 $INSTALL_DIR && \
     mkdir $ORACLE_BASE/scripts/startup && \
     ln -s $ORACLE_BASE/scripts /docker-entrypoint-initdb.d && \
     mkdir -p $ORACLE_BASE/oradata /home/oracle && \
-    chown -R oracle $ORACLE_BASE /home/oracle && \
+    # chown -R oracle $ORACLE_BASE /home/oracle && \
     chgrp -R 0 $INSTALL_DIR/* && \
     chmod -R g=u $INSTALL_DIR/* && \
     mv $INSTALL_DIR/$RUN_FILE $ORACLE_BASE/ && \
@@ -99,6 +99,6 @@ RUN chgrp -R 0 $INSTALL_DIR && \
 VOLUME ${ORA_DATA}
 
 EXPOSE 1521
-USER oracle
+USER 1001
 
 CMD exec $ORACLE_BASE/$RUN_FILE
