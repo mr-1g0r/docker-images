@@ -18,6 +18,7 @@
 #
 # Pull base image
 # ---------------
+# FROM oraclelinux:7-slim
 FROM registry.access.redhat.com/rhel7/rhel
 
 # Labels
@@ -43,6 +44,7 @@ ENV ORACLE_BASE=/opt/oracle \
     ORACLE_HOME=/opt/oracle/product/18c/dbhomeXE \
     ORACLE_SID=XE \
     INSTALL_FILE_1="https://download.oracle.com/otn-pub/otn_software/db-express/oracle-database-xe-18c-1.0-1.x86_64.rpm" \
+    # INSTALL_FILE_1="oracle-database-xe-18c-1.0-1.x86_64.rpm" \
     RUN_FILE="runOracle.sh" \
     PWD_FILE="setPassword.sh" \
     CONF_FILE="oracle-xe-18c.conf" \
@@ -59,20 +61,24 @@ ENV PATH=$ORACLE_HOME/bin:$PATH \
 # -------------
 COPY $CHECK_SPACE_FILE $RUN_FILE $PWD_FILE $CHECK_DB_FILE $CONF_FILE $INSTALL_DIR/
 
-RUN chgrp -R 0 $INSTALL_DIR/*.sh && \
-    chmod -R g=u $INSTALL_DIR/*.sh && \
+RUN chgrp -R 0 $INSTALL_DIR && \
+    chmod -R g=u $INSTALL_DIR && \
     sync && \
     $INSTALL_DIR/$CHECK_SPACE_FILE && \
     cd $INSTALL_DIR && \
+    # yum-config-manager --enable registry.access.redhat.com && \
     yum -y install openssl oracle-database-preinstall-18c && \
     yum -y localinstall $INSTALL_FILE_1 && \
+    # yum -y localinstall $INSTALL_DIR/$INSTALL_FILE_1 && \
     rm -rf /var/cache/yum && \
     rm -rf /var/tmp/yum-* && \
     mkdir -p $ORACLE_BASE/scripts/setup && \
     mkdir $ORACLE_BASE/scripts/startup && \
     ln -s $ORACLE_BASE/scripts /docker-entrypoint-initdb.d && \
     mkdir -p $ORACLE_BASE/oradata /home/oracle && \
-    chown -R oracle:oinstall $ORACLE_BASE /home/oracle && \
+    chown -R oracle $ORACLE_BASE /home/oracle && \
+    chgrp -R 0 $INSTALL_DIR/* && \
+    chmod -R g=u $INSTALL_DIR/* && \
     mv $INSTALL_DIR/$RUN_FILE $ORACLE_BASE/ && \
     mv $INSTALL_DIR/$PWD_FILE $ORACLE_BASE/ && \
     mv $INSTALL_DIR/$CHECK_DB_FILE $ORACLE_BASE/ && \
@@ -80,8 +86,8 @@ RUN chgrp -R 0 $INSTALL_DIR/*.sh && \
     ln -s $ORACLE_BASE/$PWD_FILE / && \
     cd $HOME && \
     rm -rf $INSTALL_DIR && \
-    chgrp -R 0 $ORACLE_BASE/*.sh \
-    chmod -R g=u $ORACLE_BASE/*.sh
+    chgrp -R 0 $ORACLE_BASE/* /home/oracle && \
+    chmod -R g=u $ORACLE_BASE/* /home/oracle 
 
 # HEALTHCHECK --interval=1m --start-period=5m \
 #    CMD "$ORACLE_BASE/$CHECK_DB_FILE" >/dev/null || exit 1
