@@ -18,8 +18,8 @@
 #
 # Pull base image
 # ---------------
-FROM oraclelinux:7-slim
-#FROM registry.access.redhat.com/rhel7/rhel
+# FROM oraclelinux:7-slim
+FROM registry.access.redhat.com/rhel7/rhel
 
 # Labels
 # ------
