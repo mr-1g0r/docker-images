@@ -51,7 +51,8 @@ ENV ORACLE_BASE=/opt/oracle \
     CHECK_SPACE_FILE="checkSpace.sh" \
     CHECK_DB_FILE="checkDBStatus.sh" \
     INSTALL_DIR="$HOME/install" \
-    ORACLE_DOCKER_INSTALL="true"
+    ORACLE_DOCKER_INSTALL="true" \
+    INSTALL_FILE_0="https://yum.oracle.com/repo/OracleLinux/OL7/latest/x86_64/getPackage/oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm"
 
 # Use second ENV so that variable get substituted
 ENV PATH=$ORACLE_HOME/bin:$PATH \
@@ -66,8 +67,11 @@ RUN chgrp -R 0 $INSTALL_DIR && \
     sync && \
     $INSTALL_DIR/$CHECK_SPACE_FILE && \
     cd $INSTALL_DIR && \
+    # Manually installing Oracle-XE pre-requisites
+    curl -o oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm $INSTALL_FILE_0 && \
+    yum -y localinstall oracle-database-preinstall-18c-1.0-1.el7.x86_64.rpm && \
     # yum-config-manager --enable registry.access.redhat.com && \
-    yum -y install openssl oracle-database-preinstall-18c && \
+    # yum -y install openssl oracle-database-preinstall-18c && \
     yum -y localinstall $INSTALL_FILE_1 && \
     # yum -y localinstall $INSTALL_DIR/$INSTALL_FILE_1 && \
     rm -rf /var/cache/yum && \
